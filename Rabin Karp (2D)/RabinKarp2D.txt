@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long ll;
+const ll MOD = 1e9 + 7;
+const ll BASE = 257;
+
+ll computeRowHash(const vector<int>& row, int m) {
+    ll hash = 0;
+    for (int i = 0; i < m; i++) {
+        hash = (hash * BASE + row[i]) % MOD;
+    }
+    return hash;
+}
+
+void rabinKarp2D(const vector<vector<int>>& text, const vector<vector<int>>& pattern) {
+    int n = text.size();
+    int m = text[0].size();
+    int pRows = pattern.size();
+    int pCols = pattern[0].size();
+
+    ll patternHash = 0;
+    vector<ll> patternRowHashes(pRows);
+    
+    for (int i = 0; i < pRows; i++) {
+        patternRowHashes[i] = computeRowHash(pattern[i], pCols);
+        patternHash = (patternHash * BASE + patternRowHashes[i]) % MOD;
+    }
+
+    vector<ll> textRowHashes(n);
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j <= m - pCols; j++) {
+            ll hash = 0;
+            for (int k = 0; k < pCols; k++) {
+                hash = (hash * BASE + text[i][j + k]) % MOD;
+            }
+            textRowHashes[i] = hash;
+
+            if (i >= pRows - 1) {
+                ll windowHash = 0;
+                for (int r = 0; r < pRows; r++) {
+                    windowHash = (windowHash * BASE + textRowHashes[i - pRows + 1 + r]) % MOD;
+                }
+                if (windowHash == patternHash) {
+                    cout << "Pattern found at row " << i - pRows + 1
+                         << ", col " << j << endl;
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    int n, m, pRows, pCols;
+    cout << "Enter size of text matrix (rows cols): ";
+    cin >> n >> m;
+    vector<vector<int>> text(n, vector<int>(m));
+    cout << "Enter text matrix elements:\n";
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            cin >> text[i][j];
+
+    cout << "Enter size of pattern matrix (rows cols): ";
+    cin >> pRows >> pCols;
+    vector<vector<int>> pattern(pRows, vector<int>(pCols));
+    cout << "Enter pattern matrix elements:\n";
+    for (int i = 0; i < pRows; i++)
+        for (int j = 0; j < pCols; j++)
+            cin >> pattern[i][j];
+
+    rabinKarp2D(text, pattern);
+
+    return 0;
+}
